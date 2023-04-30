@@ -52,7 +52,6 @@ void	eldest(char **argv, char **env, t_pipex _pipex);
 void	youngest(char **argv, char **env, t_pipex _pipex);
 char	**ft_split(char const *str, char c);
 char	*envstr(char **envector, const char *envariable);
-char	*pathname(char *path, char *name);
 size_t	ft_strlen(const char *str);
 
 #endif

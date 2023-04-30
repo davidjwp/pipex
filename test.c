@@ -82,7 +82,7 @@ int	main(int argc, char **argv, char **env)
 	{
 		char	**args = ft_split(argv[1], ' ');
 
-		dup2 (pipe_fd[1], STDOUT);
+		dup2 (, STDOUT);
 		execve(pathname("/bin/", argv[1]), args, NULL);
 	}
 	return 0; 

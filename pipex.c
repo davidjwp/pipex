@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "pipex.h"
+
 /*
 *	(function breakdown)
 *	:	check argc is right	
@@ -18,7 +19,7 @@
 *	:	replace infile with stdin
 *	:	fork the processes into eldest and then youngest processes
 */
-int	main(int argc, char **argv, char **env)//21
+int	main(int argc, char **argv, char **env)
 {
 	t_pipex	_pipex;
 
@@ -31,11 +32,13 @@ int	main(int argc, char **argv, char **env)//21
 		eldest(argv, env, _pipex);
 	else if (_pipex.eldest_pid == -1)
 		return (perror("fork1 error"), 0);
-	// while (read(_pipex.pipe_fd[0], _pipex.buf, BUFSIZ))
-		// write (STDOUT_FILENO, _pipex.buf, ft_strlen(_pipex.buf));
-	 _pipex.youngest_pid = fork();
-	 if (!_pipex.youngest_pid)
+	_pipex.youngest_pid = fork();
+	if (!_pipex.youngest_pid)
+	{
+		_pipex.stat_loc = NULL;
+		waitpid(_pipex.eldest_pid, _pipex.stat_loc, WUNTRACED);
 		youngest(argv, env, _pipex);
+	}
 	else if (_pipex.youngest_pid == -1)
 		return (perror("fork2 error"), close(_pipex.in), close(_pipex.out), 0);
 	return (0);
