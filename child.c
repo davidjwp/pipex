@@ -12,23 +12,26 @@
 
 #include "pipex.h"
 
-void	free_all(char **paths, char **args)
+void	free_all(t_pipex _pipex)
 {
 	int	i;
 
 	i = 0;
-	while (paths[i])
-		free(paths[i++]);
-	free(paths[i]);
-	free(paths);
+	while (_pipex.paths[i])
+		free(_pipex.paths[i++]);
+	free(_pipex.paths[i]);
+	free(_pipex.paths);
 	i = 0;
-	while (args[i])
-		free(args[i++]);
-	free(args[i]);
-	free(args);
+	while (_pipex.args[i])
+		free(_pipex.args[i++]);
+	free(_pipex.args[i]);
+	free(_pipex.args);
+	close(_pipex.pipe_fd[0]);
+	close(_pipex.pipe_fd[1]);
 }
+
 /*
-*	add the cmd at the end of the path after adding '/'
+*	truncate the command line arg to the path 
 */
 char	*pathname(char *path, char *name)
 {
@@ -53,33 +56,57 @@ char	*pathname(char *path, char *name)
 	return (pathname);
 }
 
-int	check_file(char **argv, int i)
+/*
+*	check for file permission and if it exists
+*/
+int	check_file(t_pipex _pipex, char **argv, int i)
 {
-	if (i == false)
+	if (!i)
+	{
 		if (access(argv[1], F_OK | R_OK) == -1)
-			return (perror("error fork1"), 1);
-	else if (i == true)
+			{
+				close(_pipex.pipe_fd[0]);
+				close(_pipex.pipe_fd[1]);
+				return (perror("error eldest process"), 1);
+			}
+	}
+	else if (i)
+	{
 		if (access(argv[4], F_OK | W_OK) == -1)
-			return (perror("error fork2"), 1);
+		{
+			close(_pipex.pipe_fd[0]);
+			close(_pipex.pipe_fd[1]);
+			return (perror("error youngest process"), 1);
+		}
+	}
+	else if (i < 0)
+	{
+		free_all(_pipex);
+		perror("execve error : command not found");
+		exit (1);
+	}
 	return (0);
 }
+
 /*
 *	(function breakdown)
-*	101:		create a list of the paths from env $PATH
-*	102:		create the arguments for execve and adding the infile
-*	103:		replace write-end of the pipe with stdout 
-*	104:		close read-end of the pipe
-*	105:		concatenate the cmd name to path
-*	106:		execute the command with the pathname (path + cmd), if it fails loop over the path  
-*	109:		if there is no more paths try an absolute path
-*	111>:	if even that fails send an error, free all and exit
+*	91:		check for permission
+*	94:		replace the input file with stdin
+*	95:		create a list of the paths from env $PATH
+*	96:		create the arguments for execve and adding the infile
+*	99:		replace write-end of the pipe with stdout 
+*	100:	close read-end of the pipe
+*	101:	concatenate the cmd name to path
+*	102>:	loop over every path given by env until the right path is found
+*	107>:	if there no path works free everything exit 
+*	113:	execute the command with the pathname, if it fails loop over the path
 */
-void	eldest(char **argv, char **env, t_pipex _pipex)//22 done 
+void	eldest(char **argv, char **env, t_pipex _pipex)
 {
 	_pipex.i = 0;
-	if (check_file(argv , 0))
+	if (check_file(_pipex, argv, 0))
 		exit(1);
-	_pipex.in = open(argv[1], O_RDONLY | O_CREAT);
+	_pipex.in = open(argv[1], O_RDONLY | __O_CLOEXEC);
 	dup2(_pipex.in, STDIN_FILENO);
 	_pipex.paths = ft_split(envstr(env, "PATH"), ':');
 	_pipex.args = ft_split(argv[2], ' ');
@@ -87,6 +114,8 @@ void	eldest(char **argv, char **env, t_pipex _pipex)//22 done
 		_pipex.paths = ft_split("/usr/bin:/usr/sbin:/bin:/sbin", ':');
 	dup2(_pipex.pipe_fd[1], STDOUT_FILENO);
 	close(_pipex.pipe_fd[0]);
+	close(_pipex.pipe_fd[1]);
+		printf("error close");
 	_pipex.pathname = pathname(_pipex.paths[_pipex.i++], _pipex.args[0]);
 	while (access(_pipex.pathname, X_OK) == -1 && _pipex.pathname != NULL)
 	{
@@ -94,25 +123,23 @@ void	eldest(char **argv, char **env, t_pipex _pipex)//22 done
 		_pipex.pathname = pathname(_pipex.paths[_pipex.i++], _pipex.args[0]);
 	}
 	if (_pipex.pathname == NULL)
-	{
-		free_all(_pipex.paths, _pipex.args);
-		perror("execve error : wrong path/cmd");
-		exit(1);
-	}
+		check_file(_pipex, argv, -1);
+	_pipex.pipe_fd[1] |= FD_CLOEXEC;
 	execve(_pipex.pathname, _pipex.args, NULL);
 }
 
 /*
-*	(this function is pretty much the same as the eldest child 
-*	though some things are different) 
-*	:	check for file access if the file does not exist create it
+*	the youngest child is the same as the eldest but the input
+*	and output are different and i wait for the previous process
 */
-void	youngest(char **argv, char **env, t_pipex _pipex)//unfinished
+void	youngest(char **argv, char **env, t_pipex _pipex)//does not create a file when "echo hello"
 {
 	_pipex.i = 0;
-	if (check_file(argv, 1))
+	_pipex.stat_loc = NULL;
+	waitpid(_pipex.eldest_pid, _pipex.stat_loc, WUNTRACED);
+	if (check_file(_pipex, argv, 1))
 		exit(1);
-	_pipex.out = open(argv[4], O_CREAT | O_TRUNC | O_WRONLY , 0644);
+	_pipex.out = open(argv[4], O_CREAT | O_WRONLY | O_TRUNC, 644);
 	dup2(_pipex.out, STDOUT_FILENO);
 	_pipex.paths = ft_split(envstr(env, "PATH"), ':');
 	_pipex.args = ft_split(argv[3], ' ');
@@ -120,6 +147,8 @@ void	youngest(char **argv, char **env, t_pipex _pipex)//unfinished
 		_pipex.paths = ft_split("/ust/bin:/usr/sbin:/bin:/sbin", ':');
 	dup2(_pipex.pipe_fd[0], STDIN_FILENO);
 	close(_pipex.pipe_fd[1]);
+	close(_pipex.pipe_fd[0]);
+	close(5);//this is the last fd opened, idk what it is 
 	_pipex.pathname = pathname(_pipex.paths[_pipex.i++], _pipex.args[0]);
 	while (access(_pipex.pathname, X_OK) == -1 && _pipex.pathname != NULL)
 	{
@@ -127,10 +156,8 @@ void	youngest(char **argv, char **env, t_pipex _pipex)//unfinished
 		_pipex.pathname = pathname(_pipex.paths[_pipex.i++], _pipex.args[0]);
 	}
 	if (_pipex.pathname == NULL)
-	{
-		free_all(_pipex.paths, _pipex.args);
-		perror("execve error : yongest child");
-		exit (1);
-	}
+		check_file(_pipex, argv, -1);
+	_pipex.pipe_fd[0] |= FD_CLOEXEC;
+	_pipex.out |= FD_CLOEXEC;
 	execve(_pipex.pathname, _pipex.args, NULL);
 }
