@@ -14,16 +14,18 @@ CC		= gcc
 
 NAME	= pipex
 
-CFLAGS	= -g -Wall -Wextra -Werror
+CFLAGS	= -g3 -Wall -Wextra -Werror
 
-SRCS	= child.c pipex.c utils.c
+SRCS	= child_bonus.c pipex_bonus.c utils_bonus.c here_doc.c
 
 OBJS	= $(SRCS:.c=.o)
 
+HEADER	= pipex_bonus.h
+
 all:$(NAME)
 
-$(NAME): $(OBJS)
-	$(CC) $(CFLAGS) -g pipex.h $(OBJS) -o $(NAME)
+$(NAME): $(OBJS) $(HEADER)
+	$(CC) $(CFLAGS) -g3 $(HEADER) $(OBJS) -o $(NAME)
 
 %.o: %.c
 	$(CC) -c -g $(CFLAGS) $< -o $@
