@@ -43,41 +43,77 @@ int	main(int argc, char **argv, char **env)
 		close(_pipe[1]);
 		execve(pathname, args, NULL);
 	}
-	while (/*i < pipe_num*/i < 4)
+	// while (/*i < pipe_num*/i < 4)
+	// {
+		// int mid_pipe[2];
+// 
+		// pipe(mid_pipe);
+		// if (!i)
+			// dup2(_pipe[0], mid_pipe[0]); 
+		// /*
+		// *	read of middle pipe becomes pipe read so that when the middle fork
+		// *	reads the last mid_pipe at first it'll read from the pipe at the
+		// *	beginning
+		// */
+		// pid = fork();
+		// if (!pid)
+		// {
+			// char *pathname = "/bin/wc";
+			// char *args[] = {"wc", NULL};
+// 
+			// dup2(mid_pipe[0], STDIN_FILENO);//read from middle pipe
+			// if (i < (pipe_num - 1))
+				// dup2(mid_pipe[1], STDOUT_FILENO);//and write into the middle pipe
+			// else
+				// dup2(_pipe[1], STDOUT_FILENO);
+			// close(mid_pipe[0]);
+			// close(mid_pipe[1]);
+			// close(_pipe[0]);
+			// close(_pipe[1]);
+			// if (execve(pathname, args, NULL) == -1)
+				// perror("execve error : ");
+		// }
+		// i++;
+	// }
+	int	mid_pipe[2];
+
+	pipe(mid_pipe);
+	// dup2(_pizpe[0], mid_pipe[0]);
+	pid = fork();
+	if (!pid)
 	{
-		int mid_pipe[2];
-		int	status;
-
-		pipe(mid_pipe);
-		if (!i)
-			dup2(_pipe[0], mid_pipe[0]); 
-		/*
-		*	read of middle pipe becomes pipe read so that when the middle fork
-		*	reads the last mid_pipe at first it'll read from the pipe at the
-		*	beginning
-		*/
-		pid = fork();
-		if (!pid)
-		{
-			char *pathname = "/bin/wc";
-			char *args[] = {"wc", NULL};
-
-			dup2(mid_pipe[0], STDIN_FILENO);//read from middle pipe
-			if (i < (pipe_num - 1))
-				dup2(mid_pipe[1], STDOUT_FILENO);//and write into the middle pipe
-			else
-				dup2(_pipe[1], STDOUT_FILENO);
-			close(mid_pipe[0]);
-			close(mid_pipe[1]);
-			close(_pipe[0]);
-			close(_pipe[1]);
-			if (execve(pathname, args, NULL) == -1)
-				perror("execve error : ");
-		}
-		i++;
+		char	pathname[] = "/bin/wc";
+		char	*args[] = {"wc", NULL};
+ 
+		dup2(mid_pipe[0], STDIN_FILENO);
+		dup2(mid_pipe[1], STDOUT_FILENO);
+		close(mid_pipe[0]);
+		close(mid_pipe[1]);
+		close(_pipe[0]);
+		close(_pipe[1]);
+		execve(pathname, args, NULL);
 	}
-	char	buf[BUFSIZ];
-	read(_pipe[0], buf, BUFSIZ);
+	char	buf[50];
+	wait (&status);
+	read(mid_pipe[0], buf, 50);
+	write (1, buf, 50);
+	int	*stat_loc = NULL;
+
+	// dup2(mid_pipe[0], _pipe[0]);
+	// pid = fork();
+	// if (!pid)
+	// {
+		// char	pathname[] = "/bin/wc";
+		// char	*args[] = {"wc", NULL};
+// 
+		// dup2(_pipe[0], STDIN_FILENO);
+		// close(_pipe[0]);
+		// close(_pipe[1]);
+		// close(mid_pipe[0]);
+		// close(mid_pipe[1]);
+		// execve(pathname, args, NULL);
+	// }
+	return (0);
 	// pid = fork();//last fork
 	// if (!pid)
 	// {
