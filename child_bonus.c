@@ -36,8 +36,6 @@ int	free_all(t_pipex _pipex, int mode)
 	close(_pipex.pipe_fd[1]);
 	if (mode == 2)
 		return (close(_pipex.i), close(_pipex.o), 0);
-	if (mode == 3)
-		while ()
 	return (0);
 }
 
@@ -79,8 +77,6 @@ int	check_file(t_pipex _pipex, char **argv, int i)
 			return (free_all(_pipex, 1), perror("error eldest proc"), 1);
 		if (_pipex.args[0] == NULL)
 			return (free_all(_pipex, 1), perror("error eldest proc"), 1);
-		else if (check_cmd(_pipex))
-			return (free_all(_pipex, 1), perror("error eldest proc"), 1);
 	}
 	else if (i)
 	{
@@ -88,8 +84,6 @@ int	check_file(t_pipex _pipex, char **argv, int i)
 			if (access(argv[4], W_OK) == -1)
 				return (free_all(_pipex, 1), perror("error youngest proc"), 1);
 		if (_pipex.args[0] == NULL)
-			return (free_all(_pipex, 1), perror("error youngest proc"), 1);
-		if (check_cmd(_pipex))
 			return (free_all(_pipex, 1), perror("error youngest proc"), 1);
 	}
 	else if (i < 0)
@@ -109,7 +103,7 @@ int	check_file(t_pipex _pipex, char **argv, int i)
 *	124>:	loop over every path given by env until the right path is found
 *	129:	execute the command with the pathname, if it fails loop over the path
 */
-void	eldest(char **argv, char **env, t_pipex _pipex)
+void	input_child(char **argv, char **env, t_pipex _pipex)
 {
 	_pipex.paths = ft_split(envstr(env, "PATH"), ':');
 	_pipex.args = ft_split(argv[2], ' ');
@@ -131,11 +125,28 @@ void	eldest(char **argv, char **env, t_pipex _pipex)
 	execve(_pipex.pathname, _pipex.args, NULL);
 }
 
+
+int	child_process(char **argv, char **env, t_pipex _pipex)
+{
+	int	i;
+
+	i = 0;
+	while (_pipex.paths[i] != NULL)
+	{
+		_pipex.pathname = pathname(_pipex.paths[i++], _pipex.args[0]);
+		if (access(_pipex.pathname, X_OK) == 0 && _pipex.pathname != NULL)
+			break;
+		else if (_pipex.paths == NULL)
+			return (perror(""), 0);
+		free(_pipex.pathname);
+	}
+}
+
 /*
 *	the youngest child is the same as the eldest but the input
 *	and output are different and i wait for the previous process
 */
-void	youngest(char **argv, char **env, t_pipex _pipex)
+void	output_child(char **argv, char **env, t_pipex _pipex)
 {
 	_pipex.stat_loc = NULL;
 	waitpid(_pipex.eldest_pid, _pipex.stat_loc, WUNTRACED);

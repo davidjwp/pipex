@@ -36,19 +36,15 @@ typedef struct t_PIPEX
 {
 	int		i;
 	int		o;
-	int		num;
 	char	**args;
 	char	**paths;
 	int		cmd_num;
-	int		scd_file;
-	int		pipe_num;
+	// int		scd_file;
+	// int		pipe_num;
 	char	*pathname;
 	int		*stat_loc;
 	int		pipe_fd[2];
-	int		eldest_pid;
-	int		middle_pid;
 	char	buf[BUFSIZ];
-	int		youngest_pid;
 }				t_pipex;
 
 //children
@@ -63,6 +59,7 @@ size_t	ft_strlen(const char *str);
 int		check_cmd(t_pipex _pipex);
 int		free_all(t_pipex _pipex, int mode);
 int		check_file(t_pipex _pipex, char **argv, int i);
+int	ft_strncmp(const char *s1, const char *s2, size_t n);
 
 #endif
 

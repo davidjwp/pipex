@@ -27,8 +27,6 @@ int	main(int argc, char **argv, char **env)
 
 
 	i = 0;
-	// pipe_num = (argc - 3) - 1; use this to determine the number of pipes 
-	//not to be used in this test
 	pipe(_pipe);
 	pid = fork();//first fork
 	if (!pid)
@@ -40,8 +38,14 @@ int	main(int argc, char **argv, char **env)
 		dup2(file, STDIN_FILENO);
 		dup2(_pipe[1], STDOUT_FILENO);
 		close(_pipe[0]);
-		close(_pipe[1]);
+		// close(_pipe[1]);
 		execve(pathname, args, NULL);
+	}
+	else
+	{
+		close(fd[1]);
+		dup2(fd[0], STDIN_FILENO);
+		waitpid(pid, NULL, 0)
 	}
 	// while (/*i < pipe_num*/i < 4)
 	// {
@@ -93,27 +97,6 @@ int	main(int argc, char **argv, char **env)
 		close(_pipe[1]);
 		execve(pathname, args, NULL);
 	}
-	char	buf[50];
-	wait (&status);
-	read(mid_pipe[0], buf, 50);
-	write (1, buf, 50);
-	int	*stat_loc = NULL;
-
-	// dup2(mid_pipe[0], _pipe[0]);
-	// pid = fork();
-	// if (!pid)
-	// {
-		// char	pathname[] = "/bin/wc";
-		// char	*args[] = {"wc", NULL};
-// 
-		// dup2(_pipe[0], STDIN_FILENO);
-		// close(_pipe[0]);
-		// close(_pipe[1]);
-		// close(mid_pipe[0]);
-		// close(mid_pipe[1]);
-		// execve(pathname, args, NULL);
-	// }
-	return (0);
 	// pid = fork();//last fork
 	// if (!pid)
 	// {
