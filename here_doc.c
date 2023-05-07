@@ -26,3 +26,12 @@ int	ft_strncmp(const char *s1, const char *s2, size_t n)
 		return (1);
 	return (*s1 - *s2);
 }
+
+int	here_doc(int argc, char **argv, char **env, t_pipex _pipex)
+{
+	(void)argv;
+	(void)env;
+	(void)argc;
+	(void)_pipex;
+	return(0);
+}

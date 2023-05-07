@@ -57,9 +57,12 @@ char	*envstr(char **envector, const char *envariable);
 char	*pathname(char *path, char *name);
 size_t	ft_strlen(const char *str);
 int		check_cmd(t_pipex _pipex);
-int		free_all(t_pipex _pipex, int mode);
+void	free_all(t_pipex _pipex, int fds);
 int		check_file(t_pipex _pipex, char **argv, int i);
-int	ft_strncmp(const char *s1, const char *s2, size_t n);
+int		ft_strncmp(const char *s1, const char *s2, size_t n);
+int		child_process(char *argv, char **env, t_pipex _pipex);
+void	execute(char *argv, char **env, t_pipex _pipex);
 
+int	here_doc(int argc, char **argv, char **env, t_pipex _pipex);
 #endif
 
