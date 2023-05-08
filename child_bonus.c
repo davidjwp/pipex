@@ -12,6 +12,29 @@
 
 #include "pipex_bonus.h"
 
+int	gnl(char **line)
+{
+	char	*buf;
+	int		n;
+	char	c;
+	int		i;
+
+	i = 0;
+	buf = malloc(sizeof(char) * BUFSIZ);
+	n = read(STDIN_FILENO, &c, 1);
+	while(n && c != '\n' && c != '\0')
+	{
+		if (c != 'n', c != '\0')
+			buf[i] = c;		
+		n = read(STDIN_FILENO, &c, 1);
+		i++;
+	}
+	buf[i] = '\n';
+	buf[++i] = 0;
+	*line = buf;
+	free(buf);
+	return (n);
+}
 
 /*
 *	this function simply creates the pathname needed by execve
@@ -59,7 +82,7 @@ void	execute(char *argv, char **env, t_pipex _pipex)
 		{
 			free_all(_pipex, 0);
 			perror("Error path not found :");
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 		free(_pipex.pathname);
 	}
@@ -68,7 +91,7 @@ void	execute(char *argv, char **env, t_pipex _pipex)
 
 int	child_process(char *argv, char **env, t_pipex _pipex)
 {
-	int	pid;
+	pid_t	pid;
 
 	if (pipe(_pipex.pipe_fd) == -1)
 			return (perror ("pipe error"), 0);
@@ -77,14 +100,15 @@ int	child_process(char *argv, char **env, t_pipex _pipex)
 		return (perror("fork error :"), 0);
 	if (pid == 0)
 	{
-		close(_pipex.pipe_fd[0]);
 		dup2(_pipex.pipe_fd[1], STDOUT_FILENO);
+		free_all(_pipex, 1);
 		execute(argv, env, _pipex);
 	}
 	else
 	{
 		close(_pipex.pipe_fd[1]);
 		dup2(_pipex.pipe_fd[0], STDIN_FILENO);
+		close (_pipex.pipe_fd[0]);
 		waitpid(pid, NULL, 0);
 	}
 	return (0);

@@ -36,6 +36,7 @@ typedef struct t_PIPEX
 {
 	int		i;
 	int		o;
+	int		index;
 	char	**args;
 	char	**paths;
 	int		cmd_num;
@@ -62,7 +63,6 @@ int		check_file(t_pipex _pipex, char **argv, int i);
 int		ft_strncmp(const char *s1, const char *s2, size_t n);
 int		child_process(char *argv, char **env, t_pipex _pipex);
 void	execute(char *argv, char **env, t_pipex _pipex);
+int		gnl(char **line);
 
-int	here_doc(int argc, char **argv, char **env, t_pipex _pipex);
 #endif
-

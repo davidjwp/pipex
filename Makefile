@@ -14,9 +14,9 @@ CC		= gcc
 
 NAME	= pipex
 
-CFLAGS	= -g3 -Wall -Wextra -Werror
+CFLAGS	= -g3 #-Wall -Wextra -Werror
 
-SRCS	= child_bonus.c pipex_bonus.c utils_bonus.c here_doc.c
+SRCS	= child_bonus.c pipex_bonus.c utils_bonus.c
 
 OBJS	= $(SRCS:.c=.o)
 
