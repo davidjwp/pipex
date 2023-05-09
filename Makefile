@@ -10,31 +10,46 @@
 #                                                                              #
 # **************************************************************************** #
 
-CC		= gcc
+CC				= gcc
 
-NAME	= pipex
+NAME			= pipex
 
-CFLAGS	= -g3 #-Wall -Wextra -Werror
+BONUS_NAME		= pipex_bonus
 
-SRCS	= child_bonus.c pipex_bonus.c utils_bonus.c
+CFLAGS			= -g3 -Wall -Wextra -Werror
 
-OBJS	= $(SRCS:.c=.o)
+SRCS			= child.c pipex.c utils.c
 
-HEADER	= pipex_bonus.h
+BONUS_SRCS		= bonus/child_bonus.c bonus/pipex_bonus.c bonus/utils_bonus.c
+
+OBJS			= $(SRCS:.c=.o)
+
+BONUS_OBJS		= $(BONUS_SRCS:.c=.o)
+
+HEADER			= pipex.h
+
+BONUS_HEADER	= bonus/pipex_bonus.h
 
 all:$(NAME)
 
-$(NAME): $(OBJS) $(HEADER)
+$(NAME): $(OBJS)
 	$(CC) $(CFLAGS) -g3 $(HEADER) $(OBJS) -o $(NAME)
 
 %.o: %.c
-	$(CC) -c -g $(CFLAGS) $< -o $@
+	$(CC) -c -g3 $(CFLAGS) $< -o $@
+
+bonus: $(BONUS_NAME)
+
+$(BONUS_NAME): $(BONUS_OBJS)
+	$(CC) $(CFLAGS) -g3 $(BONUS_HEADER) $(BONUS_OBJS) -o $(BONUS_NAME)
 
 clean:
 	rm -f $(OBJS)
+	rm -f $(BONUS_OBJS)
 
 fclean: clean
 	rm -f $(NAME)
+	rm -f $(BONUS_NAME)
 
 re: fclean all
 

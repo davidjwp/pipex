@@ -51,7 +51,7 @@ char	*pathname(char *path, char *name)
 	i = 0;
 	if (path == NULL)
 		return (NULL);
-	pathname = malloc(sizeof(char) * (ft_strlen(path) + ft_strlen(name) + 2));
+	pathname = malloc(sizeof(char) * ((ft_strlen(path) + ft_strlen(name)) + 2));
 	if (!pathname)
 		return (perror("pathname error"), free(pathname), "error");
 	while (path[i])
@@ -62,7 +62,7 @@ char	*pathname(char *path, char *name)
 	pathname[i++] = '/';
 	while (*name)
 		pathname[i++] = *name++;
-	pathname[i] = 0;
+	pathname[i] = '\0';
 	return (pathname);
 }
 
@@ -77,8 +77,8 @@ int	check_file(t_pipex _pipex, char **argv, int i)
 			return (free_all(_pipex, 1), perror("error eldest proc"), 1);
 		if (_pipex.args[0] == NULL)
 			return (free_all(_pipex, 1), perror("error eldest proc"), 1);
-		else if (check_cmd(_pipex))
-			return (free_all(_pipex, 1), perror("error eldest proc"), 1);
+		// else if (check_cmd(_pipex))
+			// return (free_all(_pipex, 1), perror("error eldest proc"), 1);
 	}
 	else if (i)
 	{
@@ -87,8 +87,8 @@ int	check_file(t_pipex _pipex, char **argv, int i)
 				return (free_all(_pipex, 1), perror("error youngest proc"), 1);
 		if (_pipex.args[0] == NULL)
 			return (free_all(_pipex, 1), perror("error youngest proc"), 1);
-		if (check_cmd(_pipex))
-			return (free_all(_pipex, 1), perror("error youngest proc"), 1);
+		// if (check_cmd(_pipex))
+			// return (free_all(_pipex, 1), perror("error youngest proc"), 1);
 	}
 	else if (i < 0)
 		return (free_all(_pipex, 1), perror("exec error : cmd not found"), 1);
@@ -126,7 +126,12 @@ void	eldest(char **argv, char **env, t_pipex _pipex)
 		free(_pipex.pathname);
 		_pipex.pathname = pathname(_pipex.paths[_pipex.num++], _pipex.args[0]);
 	}
-	execve(_pipex.pathname, _pipex.args, NULL);
+	if (access(_pipex.pathname, X_OK) == -1)
+	{
+		perror("Error eldest cmd not found:");
+		exit(EXIT_FAILURE);
+	}
+	execve(_pipex.pathname, _pipex.args, env);
 }
 
 /*
@@ -156,5 +161,7 @@ void	youngest(char **argv, char **env, t_pipex _pipex)
 	}
 	if (_pipex.pathname == NULL)
 		check_file(_pipex, argv, -1);
-	execve(_pipex.pathname, _pipex.args, NULL);
+	execve(_pipex.pathname, _pipex.args, env);
+	perror("Error youngest cmd not found:");
+	exit(EXIT_FAILURE);
 }
