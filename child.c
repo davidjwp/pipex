@@ -125,11 +125,11 @@ void	eldest(char **argv, char **env, t_pipex _pipex)
 	{
 		free(_pipex.pathname);
 		_pipex.pathname = pathname(_pipex.paths[_pipex.num++], _pipex.args[0]);
-	}
-	if (access(_pipex.pathname, X_OK) == -1)
-	{
-		perror("Error eldest cmd not found:");
-		exit(EXIT_FAILURE);
+		if (_pipex.pathname == NULL)
+		{
+			perror("Error eldest cmd not found:");
+			exit(EXIT_FAILURE);
+		}
 	}
 	execve(_pipex.pathname, _pipex.args, env);
 }
