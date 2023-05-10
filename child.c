@@ -77,8 +77,6 @@ int	check_file(t_pipex _pipex, char **argv, int i)
 			return (free_all(_pipex, 1), perror("error eldest proc"), 1);
 		if (_pipex.args[0] == NULL)
 			return (free_all(_pipex, 1), perror("error eldest proc"), 1);
-		// else if (check_cmd(_pipex))
-			// return (free_all(_pipex, 1), perror("error eldest proc"), 1);
 	}
 	else if (i)
 	{
@@ -87,8 +85,6 @@ int	check_file(t_pipex _pipex, char **argv, int i)
 				return (free_all(_pipex, 1), perror("error youngest proc"), 1);
 		if (_pipex.args[0] == NULL)
 			return (free_all(_pipex, 1), perror("error youngest proc"), 1);
-		// if (check_cmd(_pipex))
-			// return (free_all(_pipex, 1), perror("error youngest proc"), 1);
 	}
 	else if (i < 0)
 		return (free_all(_pipex, 1), perror("exec error : cmd not found"), 1);
@@ -127,7 +123,7 @@ void	eldest(char **argv, char **env, t_pipex _pipex)
 		_pipex.pathname = pathname(_pipex.paths[_pipex.num++], _pipex.args[0]);
 		if (_pipex.pathname == NULL)
 		{
-			perror("Error eldest cmd not found:");
+			perror("Error eldest cmd not found");
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -141,7 +137,6 @@ void	eldest(char **argv, char **env, t_pipex _pipex)
 void	youngest(char **argv, char **env, t_pipex _pipex)
 {
 	_pipex.stat_loc = NULL;
-	waitpid(_pipex.eldest_pid, _pipex.stat_loc, WUNTRACED);
 	_pipex.paths = ft_split(envstr(env, "PATH"), ':');
 	_pipex.args = ft_split(argv[3], ' ');
 	if (check_file(_pipex, argv, 1))
@@ -158,10 +153,11 @@ void	youngest(char **argv, char **env, t_pipex _pipex)
 	{
 		free(_pipex.pathname);
 		_pipex.pathname = pathname(_pipex.paths[_pipex.num++], _pipex.args[0]);
+		if (_pipex.pathname == NULL)
+		{
+			perror("Error youngest cmd not found");
+			exit(EXIT_FAILURE);
+		}
 	}
-	if (_pipex.pathname == NULL)
-		check_file(_pipex, argv, -1);
 	execve(_pipex.pathname, _pipex.args, env);
-	perror("Error youngest cmd not found:");
-	exit(EXIT_FAILURE);
 }
